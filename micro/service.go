@@ -1,6 +1,7 @@
 package micro
 
 type Service struct {
+	Endpoints []*Endpoint
 }
 
 func (s *Service) Start() {
