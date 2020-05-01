@@ -1,4 +1,4 @@
-package micro
+package service
 
 import "net/http"
 

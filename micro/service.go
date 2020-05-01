@@ -1,10 +1,11 @@
-package micro
+package service
 
 import (
 	"fmt"
 	"net"
 	"time"
 
+	"github.com/julienschmidt/httprouter"
 	"go.uber.org/zap"
 )
 
@@ -16,6 +17,7 @@ type Service struct {
 	logger *zap.Logger
 
 	server Server
+	router *httprouter.Router
 
 	Endpoints []*Endpoint
 }
@@ -37,9 +39,11 @@ func (s *Service) GetVersion() float64 {
 func (s *Service) GetPort() int {
 	return s.Port
 }
+func (s *Service) Init() {
+	s.router = newRouter()
+	s.server = newServer(s.router, "", s.Port)
+}
 func (s *Service) Start() error {
-	router := newRouter(s.Endpoints)
-	s.server = newServer(router, "", s.Port)
 	if err := s.server.Start(); err != nil {
 		return err
 	}
