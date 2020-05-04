@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"net"
+	"net/http"
 	"time"
 
 	"github.com/julienschmidt/httprouter"
@@ -114,6 +115,7 @@ func (s *Service) Health() int {
 }
 
 // Add an endpoint to the service
-func (s *Service) AddEndpoint(endpoint *Endpoint) {
+func (s *Service) AddEndpoint(handler http.HandlerFunc, method, path string) {
+	endpoint := newEndpoint(handler, method, path)
 	s.Endpoints = append(s.Endpoints, endpoint)
 }
