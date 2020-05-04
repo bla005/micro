@@ -8,11 +8,11 @@ import (
 
 type Config struct {
 	Service struct {
-		Log        bool
-		LogsFolder string
-		Server     struct {
-			UseSsl   bool
-			HttpPort int
+		Log    bool
+		LogDir string
+		Server struct {
+			Ssl  bool
+			Port int
 		}
 	}
 }
@@ -24,10 +24,11 @@ func NewConfig() *Config {
 func LoadConfig(configPath string) (*Config, error) {
 	cfg := NewConfig()
 
-	file, err := os.OpenFile(configPath, os.O_RDONLY, 0644)
+	file, err := os.Open(configPath)
 	if err != nil {
 		return nil, err
 	}
+	defer file.Close()
 	dec := yaml.NewDecoder(file)
 	if err := dec.Decode(cfg); err != nil {
 		return nil, err
