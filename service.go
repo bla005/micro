@@ -20,7 +20,7 @@ type Service struct {
 	server Server
 	router *httprouter.Router
 
-	Endpoints []Endpoint
+	Endpoints []*Endpoint
 }
 
 // Creates a new service
@@ -32,7 +32,7 @@ func NewService(name string, version float64, logger *zap.Logger, config *Config
 		logger:    logger,
 		server:    nil,
 		router:    nil,
-		Endpoints: make([]Endpoint, 0),
+		Endpoints: make([]*Endpoint, 0),
 	}
 }
 
@@ -49,6 +49,11 @@ func (s *Service) GetVersion() float64 {
 // Returns the service port
 func (s *Service) GetPort() int {
 	return s.config.Service.Server.Port
+}
+
+// Returns the endpoints
+func (s *Service) GetEndpoints() []*Endpoint {
+	return s.Endpoints
 }
 
 // Initializes the http router
@@ -109,6 +114,6 @@ func (s *Service) Health() int {
 }
 
 // Add an endpoint to the service
-func (s *Service) AddEndpoint(endpoint Endpoint) {
+func (s *Service) AddEndpoint(endpoint *Endpoint) {
 	s.Endpoints = append(s.Endpoints, endpoint)
 }

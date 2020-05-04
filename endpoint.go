@@ -2,4 +2,8 @@ package service
 
 import "net/http"
 
-type Endpoint func(http.ResponseWriter, *http.Request)
+type Endpoint struct {
+	Handler http.HandlerFunc
+	Method  string
+	Path    string
+}
