@@ -21,13 +21,13 @@ func NewConfig() *Config {
 	return &Config{}
 }
 
-func LoadConfig() error {
+func LoadConfig() (*Config, error) {
 	cfg := NewConfig()
 	plm := yaml.ReferenceDirs(".")
 	buf := bytes.NewBufferString("")
 	dec := yaml.NewDecoder(buf, plm)
 	if err := dec.Decode(cfg); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return cfg, nil
 }
