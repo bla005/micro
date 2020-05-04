@@ -17,12 +17,13 @@ type Config struct {
 	} `yaml:"service"`
 }
 
-func NewConfig() *Config {
+func newConfig() *Config {
 	return &Config{}
 }
 
+// Loads config from an existing config yaml file
 func LoadConfig(configPath string) (*Config, error) {
-	cfg := NewConfig()
+	cfg := newConfig()
 
 	file, err := os.Open(configPath)
 	if err != nil {
