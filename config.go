@@ -24,7 +24,7 @@ func NewConfig() *Config {
 func LoadConfig(configPath string) (*Config, error) {
 	cfg := NewConfig()
 
-	file, err := os.Open(configPath)
+	file, err := os.OpenFile(configPath, os.O_RDONLY, 0644)
 	if err != nil {
 		return nil, err
 	}

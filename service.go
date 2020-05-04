@@ -42,7 +42,7 @@ func (s *Service) GetVersion() float64 {
 	return s.Version
 }
 func (s *Service) GetPort() int {
-	return s.config.Service.Server.HttpPort
+	return s.config.Service.Server.Port
 }
 func (s *Service) InitRouter() {
 	s.router = newRouter()
@@ -51,7 +51,7 @@ func (s *Service) InitRouter() {
 	}
 }
 func (s *Service) InitServer() {
-	s.server = newServer(s.router, "", s.config.Service.Server.HttpPort)
+	s.server = newServer(s.router, "", s.config.Service.Server.Port)
 	if s.config.Service.Log {
 		s.logger.Info("Server initialized", zap.Int("port", s.GetPort()))
 	}
