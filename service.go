@@ -20,7 +20,7 @@ type Service struct {
 	server Server
 	router *httprouter.Router
 
-	Endpoints []*Endpoint
+	Endpoints []Endpoint
 }
 
 // Creates a new service
@@ -32,7 +32,7 @@ func NewService(name string, version float64, logger *zap.Logger, config *Config
 		logger:    logger,
 		server:    nil,
 		router:    nil,
-		Endpoints: make([]*Endpoint, 0),
+		Endpoints: make([]Endpoint, 0),
 	}
 }
 
@@ -69,11 +69,20 @@ func (s *Service) InitServer() {
 
 // Starts the service
 func (s *Service) Start() error {
-	if err := s.server.Start(); err != nil {
-		if s.config.Service.Log {
-			s.logger.Info("Failed starting service", zap.Error(err))
+	if s.config.Service.Server.Ssl {
+		if err := s.server.startWithTLS(); err != nil {
+			if s.config.Service.Log {
+				s.logger.Info("Failed starting service", zap.Error(err))
+			}
+			return err
 		}
-		return err
+	} else {
+		if err := s.server.start(); err != nil {
+			if s.config.Service.Log {
+				s.logger.Info("Failed starting service", zap.Error(err))
+			}
+			return err
+		}
 	}
 	if s.config.Service.Log {
 		s.logger.Info("Service started successfully")
@@ -81,17 +90,17 @@ func (s *Service) Start() error {
 	return nil
 }
 
-// Stops the service if it's running
+// Stops the service
 func (s *Service) Stop() {
-	s.server.Shutdown()
+	s.server.shutdown()
 	if s.config.Service.Log {
 		s.logger.Info("Stopped service successfully")
 	}
 }
 
-// Checks service health status
+// Checks service's health
 func (s *Service) Health() int {
-	conn, err := net.DialTimeout("tcp", fmt.Sprintf(s.server.GetHost(), s.server.GetPort()), 2*time.Second)
+	conn, err := net.DialTimeout("tcp", fmt.Sprintf(s.server.getHost(), s.server.getPort()), 2*time.Second)
 	if err != nil {
 		return 0
 	}
@@ -100,6 +109,6 @@ func (s *Service) Health() int {
 }
 
 // Add an endpoint to the service
-func (s *Service) AddEndpoint(endpoint *Endpoint) {
+func (s *Service) AddEndpoint(endpoint Endpoint) {
 	s.Endpoints = append(s.Endpoints, endpoint)
 }

@@ -13,11 +13,11 @@ import (
 )
 
 type Server interface {
-	Start() error
-	StartWithTLS() error
-	GetHost() string
-	GetPort() int
-	Shutdown()
+	start() error
+	startWithTLS() error
+	getHost() string
+	getPort() int
+	shutdown()
 }
 
 type server struct {
@@ -28,25 +28,25 @@ type server struct {
 	port   int
 }
 
-func (s *server) Start() error {
+func (s *server) start() error {
 	if err := s.server.ListenAndServe(); err != nil {
 		return err
 	}
 	return nil
 }
-func (s *server) GetHost() string {
+func (s *server) getHost() string {
 	return s.host
 }
-func (s *server) GetPort() int {
+func (s *server) getPort() int {
 	return s.port
 }
-func (s *server) StartWithTLS() error {
+func (s *server) startWithTLS() error {
 	if err := s.server.ListenAndServeTLS(s.cert, s.key); err != nil {
 		return err
 	}
 	return nil
 }
-func (s *server) Shutdown() {
+func (s *server) shutdown() {
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-done
