@@ -8,13 +8,13 @@ import (
 
 type Config struct {
 	Service struct {
-		Log    bool
-		LogDir string
+		Log    bool   `yaml:"log"`
+		LogDir string `yaml:"logdir"`
 		Server struct {
-			Ssl  bool
-			Port int
-		}
-	}
+			Ssl  bool `yaml:"ssl"`
+			Port int  `yaml:"port"`
+		} `yaml:"server"`
+	} `yaml:"service"`
 }
 
 func NewConfig() *Config {
