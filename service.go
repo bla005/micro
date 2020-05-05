@@ -119,3 +119,10 @@ func (s *Service) AddEndpoint(handler http.HandlerFunc, method, path string) {
 	endpoint := newEndpoint(handler, method, path)
 	s.Endpoints = append(s.Endpoints, endpoint)
 }
+
+// Register the health endpoint
+// which can be used to check the
+// health of the service
+func (s *Service) RegisterHealthEndpoint() {
+	s.router.HandlerFunc("GET", s.config.Service.Health.Endpoint, healthHandler)
+}

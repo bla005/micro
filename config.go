@@ -8,8 +8,14 @@ import (
 
 type Config struct {
 	Service struct {
-		Log    bool   `yaml:"log"`
-		LogDir string `yaml:"logdir"`
+		Log         bool   `yaml:"log"`
+		LogDir      string `yaml:"logdir"`
+		HealthCheck bool   `yaml:"health_check"`
+		Health      struct {
+			Check    bool   `yaml:"check"`
+			Timeout  uint64 `yaml:"timeout"`
+			Endpoint string `yaml:"endpoint"`
+		} `yaml:"health"`
 		Server struct {
 			Ssl  bool `yaml:"ssl"`
 			Port int  `yaml:"port"`
