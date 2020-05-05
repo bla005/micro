@@ -11,9 +11,9 @@ type healthResponse struct {
 }
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {
-	timeStart := time.Now()
+	startTime := time.Now()
 	healthResp := &healthResponse{
-		Durationn: time.Since(timeStart),
+		Durationn: time.Now().Sub(startTime),
 	}
 	// if duration > timeout in config....
 
