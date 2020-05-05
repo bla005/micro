@@ -18,6 +18,7 @@ func checkHealth() int {
 		return 0
 	}
 	defer conn.Close()
+	//pizda matii
 	return 1
 }
 
