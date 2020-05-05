@@ -7,15 +7,17 @@ import (
 )
 
 type healthResponse struct {
-	Duration time.Duration
+	Durationn time.Duration
 }
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	timeStart := time.Now()
 	healthResp := &healthResponse{
-		Duration: time.Since(timeStart),
+		Durationn: time.Since(timeStart),
 	}
 	// if duration > timeout in config....
+
 	if err := json.NewEncoder(w).Encode(healthResp); err != nil {
+		//caca
 	}
 }
