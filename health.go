@@ -15,7 +15,7 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 	healthResp := &healthResponse{
 		Durationn: time.Now().Sub(startTime),
 	}
-	// if duration > timeout in config....
+	// if duration > timeout in config....x
 
 	if err := json.NewEncoder(w).Encode(healthResp); err != nil {
 		//caca
