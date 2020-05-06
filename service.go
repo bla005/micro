@@ -10,6 +10,13 @@ import (
 	"go.uber.org/zap"
 )
 
+var startTime time.Time
+
+func init() {
+	fmt.Println("muie")
+	startTime = time.Now()
+}
+
 type Service struct {
 	Name    string
 	Version float64
@@ -55,6 +62,11 @@ func (s *Service) GetPort() int {
 // Returns the endpoints
 func (s *Service) GetEndpoints() []*Endpoint {
 	return s.Endpoints
+}
+
+// Returns the service uptime
+func (s *Service) GetUptime() time.Duration {
+	return time.Now().Sub(startTime)
 }
 
 // Initializes the http router
