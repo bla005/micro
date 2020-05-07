@@ -2,6 +2,7 @@ package service
 
 import (
 	"os"
+	"time"
 
 	"github.com/goccy/go-yaml"
 )
@@ -17,8 +18,15 @@ type Config struct {
 			Endpoint string `yaml:"endpoint"`
 		} `yaml:"health"`
 		Server struct {
-			Ssl  bool `yaml:"ssl"`
-			Port int  `yaml:"port"`
+			Host    string `yaml:"host"`
+			Port    int    `yaml:"port"`
+			Ssl     bool   `yaml:"ssl"`
+			Timeout struct {
+				Read       time.Duration `yaml:"read"`
+				Write      time.Duration `yaml:"write"`
+				Idle       time.Duration `yaml:"idle"`
+				ReadHeader time.Duration `yaml:"read_header"`
+			} `yaml:"timeout"`
 		} `yaml:"server"`
 	} `yaml:"service"`
 }

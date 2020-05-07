@@ -1,8 +1,6 @@
 package service
 
 import (
-	"fmt"
-	"net"
 	"net/http"
 	"time"
 
@@ -64,19 +62,12 @@ func (s *Service) GetUptime() time.Duration {
 	return time.Now().Sub(s.startTime)
 }
 
-// Initializes the http router
-func (s *Service) InitRouter() {
+// Initializes the service
+func (s *Service) Init() {
 	s.router = newRouter()
+	s.server = newServer(s.router, s.config)
 	if s.config.Service.Log {
-		s.logger.Info("Router initialized")
-	}
-}
-
-// Initializes the http server
-func (s *Service) InitServer() {
-	s.server = newServer(s.router, "", s.config.Service.Server.Port)
-	if s.config.Service.Log {
-		s.logger.Info("Server initialized", zap.Int("port", s.GetPort()))
+		s.logger.Info("Service initialized")
 	}
 }
 
@@ -111,18 +102,8 @@ func (s *Service) Stop() {
 	}
 }
 
-// Checks service's health
-func (s *Service) Health() int {
-	conn, err := net.DialTimeout("tcp", fmt.Sprintf(s.server.getHost(), s.server.getPort()), 2*time.Second)
-	if err != nil {
-		return 0
-	}
-	defer conn.Close()
-	return 1
-}
-
 // Add an endpoint to the service
-func (s *Service) AddEndpoint(handler http.HandlerFunc, method, path string) {
+func (s *Service) RegisterEndpoint(handler http.HandlerFunc, method, path string) {
 	endpoint := newEndpoint(handler, method, path)
 	s.Endpoints = append(s.Endpoints, endpoint)
 }
@@ -131,5 +112,5 @@ func (s *Service) AddEndpoint(handler http.HandlerFunc, method, path string) {
 // which can be used to check the
 // health of the service
 func (s *Service) RegisterHealthEndpoint() {
-	s.router.HandlerFunc("GET", s.config.Service.Health.Endpoint, healthHandler)
+	s.router.HandlerFunc("GET", s.config.Service.Health.Endpoint, s.healthHandler)
 }

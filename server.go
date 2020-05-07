@@ -61,8 +61,8 @@ func (s *server) shutdown() {
 	close(done)
 }
 
-func newServer(handler http.Handler, host string, port int) Server {
-	addr := fmt.Sprintf("%s:%d", host, port)
+func newServer(handler http.Handler, config *Config) Server {
+	addr := fmt.Sprintf("%s:%d", config.Service.Server.Host, config.Service.Server.Port)
 	tlsConfig := &tls.Config{
 		PreferServerCipherSuites: true,
 		MinVersion:               tls.VersionTLS12,
@@ -81,11 +81,11 @@ func newServer(handler http.Handler, host string, port int) Server {
 	s := &http.Server{
 		Addr:              addr,
 		Handler:           handler,
-		ReadTimeout:       5 * time.Second,
-		WriteTimeout:      5 * time.Second,
-		IdleTimeout:       30 * time.Second,
-		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       config.Service.Server.Timeout.Read * time.Second,
+		WriteTimeout:      config.Service.Server.Timeout.Write * time.Second,
+		IdleTimeout:       config.Service.Server.Timeout.Idle * time.Second,
+		ReadHeaderTimeout: config.Service.Server.Timeout.ReadHeader * time.Second,
 		TLSConfig:         tlsConfig,
 	}
-	return &server{server: s, host: host, port: port}
+	return &server{server: s, host: config.Service.Server.Host, port: config.Service.Server.Port}
 }
