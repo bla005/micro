@@ -12,14 +12,6 @@ import (
 	"time"
 )
 
-type Server interface {
-	start() error
-	startWithTLS() error
-	getHost() string
-	getPort() int
-	shutdown()
-}
-
 type server struct {
 	server *http.Server
 	cert   string
@@ -28,17 +20,17 @@ type server struct {
 	port   int
 }
 
-func (s *server) start() error {
-	if err := s.server.ListenAndServe(); err != nil {
-		return err
-	}
-	return nil
-}
 func (s *server) getHost() string {
 	return s.host
 }
 func (s *server) getPort() int {
 	return s.port
+}
+func (s *server) start() error {
+	if err := s.server.ListenAndServe(); err != nil {
+		return err
+	}
+	return nil
 }
 func (s *server) startWithTLS() error {
 	if err := s.server.ListenAndServeTLS(s.cert, s.key); err != nil {
@@ -61,7 +53,7 @@ func (s *server) shutdown() {
 	close(done)
 }
 
-func newServer(handler http.Handler, config *Config) Server {
+func newServer(handler http.Handler, config *Config) *server {
 	addr := fmt.Sprintf("%s:%d", config.Service.Server.Host, config.Service.Server.Port)
 	tlsConfig := &tls.Config{
 		PreferServerCipherSuites: true,

@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func (s *Service) healthHandler(w http.ResponseWriter, r *http.Request) {
+func (s *service) healthHandler(w http.ResponseWriter, r *http.Request) {
 	resp := struct {
 		Uptime time.Duration `json:"uptime"`
 		Check  string        `json:"check"`
@@ -15,6 +15,7 @@ func (s *Service) healthHandler(w http.ResponseWriter, r *http.Request) {
 		Check:  "OK",
 	}
 	if err := json.NewEncoder(w).Encode(&resp); err != nil {
-		//caca
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }

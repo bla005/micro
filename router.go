@@ -1,7 +1,16 @@
 package service
 
-import "github.com/julienschmidt/httprouter"
+import (
+	"net/http"
 
-func newRouter() *httprouter.Router {
+	"github.com/julienschmidt/httprouter"
+)
+
+type Router interface {
+	HandlerFunc(string, string, http.HandlerFunc)
+	ServeHTTP(http.ResponseWriter, *http.Request)
+}
+
+func newRouter() Router {
 	return httprouter.New()
 }
