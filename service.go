@@ -90,30 +90,30 @@ func (s *service) Init() {
 	s.router = newRouter()
 	s.server = newServer(s.router, s.config)
 	s.router.HandlerFunc("GET", s.config.Service.Health.Path, s.healthHandler)
-	s.logger.Info("Service initialized")
+	// s.logger.Info("Service initialized")
 }
 
 // Starts the service
 func (s *service) Start() error {
 	if s.config.Service.Server.Ssl {
 		if err := s.server.startWithTLS(); err != nil {
-			s.logger.Info("Failed starting service", zap.Error(err))
+			// s.logger.Info("Failed starting service", zap.Error(err))
 			return err
 		}
 	} else {
 		if err := s.server.start(); err != nil {
-			s.logger.Info("Failed starting service", zap.Error(err))
+			// s.logger.Info("Failed starting service", zap.Error(err))
 			return err
 		}
 	}
-	s.logger.Info("Service started successfully")
+	// s.logger.Info("Service started successfully")
 	return nil
 }
 
 // Stops the service
 func (s *service) Shutdown() {
 	s.server.shutdown()
-	s.logger.Info("Stopped service successfully")
+	// s.logger.Info("Stopped service successfully")
 }
 
 // Add an endpoint to the service
