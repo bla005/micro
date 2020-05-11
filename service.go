@@ -24,6 +24,7 @@ type Service interface {
 	GetEndpoints() []*Endpoint
 	GetUptime() time.Duration
 	RegisterEndpoint(handler http.HandlerFunc, method, path string)
+	Test(endpoints ...Endpoint)
 }
 
 type service struct {
