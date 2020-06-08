@@ -1,9 +1,10 @@
 package service
 
-var (
-	// ErrNilLogger ...
-	ErrNilLogger error
+import "errors"
 
-	// ErrNilConfig ...
-	ErrNilConfig error
+var (
+	// ErrNilLogger
+	// ErrNilLogger error = errors.New("logger is nil")
+	//
+	ErrNilConfig error = errors.New("config is nil")
 )

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/julienschmidt/httprouter"
-	"go.uber.org/zap"
 )
 
 // Service object
@@ -28,28 +27,30 @@ type Service interface {
 }
 
 type service struct {
-	name      string
-	version   string
-	config    *Config
-	logger    *zap.Logger
+	name    string
+	version string
+	config  *Config
+	// logger    *zap.Logger
 	server    *server
 	router    *httprouter.Router
 	endpoints []*Endpoint
 }
 
 // NewService creates a new service
-func NewService(name string, version string, logger *zap.Logger, config *Config) (Service, error) {
-	if logger == nil {
-		return nil, ErrNilLogger
-	}
+func NewService(name string, version string, config *Config /*logger *zap.Logger*/) (Service, error) {
+	/*
+		if logger == nil {
+			return nil, ErrNilLogger
+		}
+	*/
 	if config == nil {
 		return nil, ErrNilConfig
 	}
 	return &service{
-		name:      name,
-		version:   version,
-		config:    config,
-		logger:    logger,
+		name:    name,
+		version: version,
+		config:  config,
+		// logger:    logger,
 		server:    nil,
 		router:    nil,
 		endpoints: []*Endpoint{},
