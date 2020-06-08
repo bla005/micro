@@ -125,9 +125,7 @@ func (s *service) Start() {
 			}
 		*/
 	} else {
-		go func() {
-			s.server.start()
-		}()
+		s.server.start()
 		/*
 			if err := s.server.start(); err != nil {
 				return err
