@@ -7,6 +7,7 @@ import (
 	"github.com/goccy/go-yaml"
 )
 
+// Config object
 type Config struct {
 	Service struct {
 		LogDir string `yaml:"logdir"`
@@ -27,11 +28,12 @@ type Config struct {
 	} `yaml:"service"`
 }
 
+// NewConfig returns an empty config
 func NewConfig() *Config {
 	return &Config{}
 }
 
-// Loads config from an existing config yaml file
+// LoadConfig loads an existing config from the specified path
 func LoadConfig(configPath string) (*Config, error) {
 	cfg := NewConfig()
 	file, err := os.Open(configPath)

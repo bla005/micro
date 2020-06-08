@@ -1,50 +1,50 @@
 package service
 
 import (
+	"crypto/tls"
 	"net/http"
 	"time"
 
+	"github.com/julienschmidt/httprouter"
 	"go.uber.org/zap"
 )
 
-var startTime time.Time
-
-func init() {
-	startTime = time.Now()
-}
-
+// Service object
 type Service interface {
 	Init()
 	Start() error
 	Shutdown()
 	GetName() string
-	GetVersion() float64
+	GetVersion() string
 	GetPort() int
-	GetRouter() Router
-	GetEndpoints() []*Endpoint
+	GetRouter() *httprouter.Router
+	GetEndpoints() []string
 	GetUptime() time.Duration
-	RegisterEndpoint(handler http.HandlerFunc, method, path string)
-	Test(endpoints ...Endpoint)
+	RegisterEndpoint(name string, handler http.HandlerFunc, method, path string)
+	RegisterEndpoints()
+	RegisterHealthEndpoint()
+	SetTLSConfig(config *tls.Config)
+	GetTLSConfig() *tls.Config
 }
 
 type service struct {
 	name      string
-	version   float64
+	version   string
 	config    *Config
 	logger    *zap.Logger
 	server    *server
-	router    Router
-	Endpoints []*Endpoint
+	router    *httprouter.Router
+	endpoints []*Endpoint
 }
 
-func (s *service) Test(endpoints ...Endpoint) {
-	for i := 0; i < len(endpoints); i++ {
-		s.router.HandlerFunc(endpoints[i].Method, endpoints[i].Path, endpoints[i].Handler)
+// NewService creates a new service
+func NewService(name string, version string, logger *zap.Logger, config *Config) (Service, error) {
+	if logger == nil {
+		return nil, ErrNilLogger
 	}
-}
-
-// Creates a new service
-func NewService(name string, version float64, logger *zap.Logger, config *Config) Service {
+	if config == nil {
+		return nil, ErrNilConfig
+	}
 	return &service{
 		name:      name,
 		version:   version,
@@ -52,73 +52,83 @@ func NewService(name string, version float64, logger *zap.Logger, config *Config
 		logger:    logger,
 		server:    nil,
 		router:    nil,
-		Endpoints: make([]*Endpoint, 0),
-	}
+		endpoints: []*Endpoint{},
+	}, nil
 }
 
-// Returns the router
-func (s *service) GetRouter() Router {
+// GetRouter returns service's router
+func (s *service) GetRouter() *httprouter.Router {
 	return s.router
 }
 
-// Returns the service name
+// GetName returns service's name
 func (s *service) GetName() string {
 	return s.name
 }
 
-// Returns the service version
-func (s *service) GetVersion() float64 {
+// GetVersion returns service's version
+func (s *service) GetVersion() string {
 	return s.version
 }
 
-// Returns the service port
+// GetPort returns service's port
 func (s *service) GetPort() int {
 	return s.config.Service.Server.Port
 }
 
-// Returns the endpoints
-func (s *service) GetEndpoints() []*Endpoint {
-	return s.Endpoints
+// GetEndpoints returns service's endpoints
+func (s *service) GetEndpoints() []string {
+	var endpoints []string
+	for i := 0; i < len(s.endpoints); i++ {
+		endpoints = append(endpoints, s.endpoints[i].Name)
+	}
+	return endpoints
 }
 
-// Returns the service uptime
+// GetUptime returns service's uptime
 func (s *service) GetUptime() time.Duration {
 	return time.Now().Sub(startTime)
 }
 
-// Initializes the service
+// Init initializes the router and the server
 func (s *service) Init() {
 	s.router = newRouter()
 	s.server = newServer(s.router, s.config)
-	s.router.HandlerFunc("GET", s.config.Service.Health.Path, s.healthHandler)
-	// s.logger.Info("Service initialized")
 }
 
-// Starts the service
+func (s *service) RegisterHealthEndpoint() {
+	s.router.HandlerFunc("GET", s.config.Service.Health.Path, s.healthHandler)
+}
+
+// SetTLSConfig makes the server use a specific TLS config
+func (s *service) SetTLSConfig(config *tls.Config) {
+	s.server.setTLSConfig(config)
+}
+
+// GetTLSConfig returns the TLS config in use
+func (s *service) GetTLSConfig() *tls.Config {
+	return s.server.getTLSConfig()
+}
+
+// Start starts the service
 func (s *service) Start() error {
 	if s.config.Service.Server.Ssl {
 		if err := s.server.startWithTLS(); err != nil {
-			// s.logger.Info("Failed starting service", zap.Error(err))
 			return err
 		}
 	} else {
-		if err := s.server.start(); err != nil {
-			// s.logger.Info("Failed starting service", zap.Error(err))
-			return err
-		}
+		s.server.start()
+		/*
+			if err := s.server.start(); err != nil {
+				return err
+			}
+		*/
 	}
-	// s.logger.Info("Service started successfully")
+	startTime = time.Now()
 	return nil
 }
 
-// Stops the service
+// Shudtown stops the service
 func (s *service) Shutdown() {
 	s.server.shutdown()
-	// s.logger.Info("Stopped service successfully")
-}
-
-// Add an endpoint to the service
-func (s *service) RegisterEndpoint(handler http.HandlerFunc, method, path string) {
-	endpoint := newEndpoint(handler, method, path)
-	s.Endpoints = append(s.Endpoints, endpoint)
 }

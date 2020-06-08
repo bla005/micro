@@ -18,19 +18,44 @@ type server struct {
 	key    string
 	host   string
 	port   int
+	// done   chan (os.Signal)
 }
 
+func (s *server) setTLSConfig(config *tls.Config) {
+	defaultTLSConfig = config
+}
+func (s *server) getTLSConfig() *tls.Config {
+	return defaultTLSConfig
+}
 func (s *server) getHost() string {
 	return s.host
 }
 func (s *server) getPort() int {
 	return s.port
 }
-func (s *server) start() error {
-	if err := s.server.ListenAndServe(); err != nil {
-		return err
+func (s *server) start() {
+	go func() {
+		if err := s.server.ListenAndServe(); err != nil {
+			log.Fatalf("listenAndServe: %v", err)
+		}
+	}()
+
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	// wait for channel to receive
+	<-done
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// s.server.SetKeepAlivesEnabled(false)
+	if err := s.server.Shutdown(ctx); err != nil {
+		log.Fatalf("shutdown: %v", err)
 	}
-	return nil
+
+	close(done)
+	// return nil
 }
 func (s *server) startWithTLS() error {
 	if err := s.server.ListenAndServeTLS(s.cert, s.key); err != nil {
@@ -39,37 +64,27 @@ func (s *server) startWithTLS() error {
 	return nil
 }
 func (s *server) shutdown() {
-	done := make(chan os.Signal, 1)
-	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-	<-done
+	// done := make(chan os.Signal, 1)
+	// signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	// <-done
+
+	// signal.Notify(s.done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	// <-s.done
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	s.server.SetKeepAlivesEnabled(false)
+	// s.server.SetKeepAlivesEnabled(false)
 	if err := s.server.Shutdown(ctx); err != nil {
-		log.Fatalf("Failed shutting down server: %v", err)
+		// log.Fatalf("Failed shutting down server: %v", err)
+		os.Exit(0)
 	}
-	close(done)
+	// close(done)
+	// close(s.done)
 }
 
 func newServer(handler http.Handler, config *Config) *server {
 	addr := fmt.Sprintf("%s:%d", config.Service.Server.Host, config.Service.Server.Port)
-	tlsConfig := &tls.Config{
-		PreferServerCipherSuites: true,
-		MinVersion:               tls.VersionTLS12,
-		CurvePreferences: []tls.CurveID{
-			tls.CurveP521,
-			tls.CurveP384,
-			tls.CurveP256,
-		},
-		CipherSuites: []uint16{
-			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-			tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
-			tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
-			tls.TLS_RSA_WITH_AES_256_CBC_SHA,
-		},
-	}
 	s := &http.Server{
 		Addr:              addr,
 		Handler:           handler,
@@ -77,7 +92,12 @@ func newServer(handler http.Handler, config *Config) *server {
 		WriteTimeout:      config.Service.Server.Timeout.Write * time.Second,
 		IdleTimeout:       config.Service.Server.Timeout.Idle * time.Second,
 		ReadHeaderTimeout: config.Service.Server.Timeout.ReadHeader * time.Second,
-		TLSConfig:         tlsConfig,
+		TLSConfig:         defaultTLSConfig,
 	}
-	return &server{server: s, host: config.Service.Server.Host, port: config.Service.Server.Port}
+	return &server{
+		server: s,
+		host:   config.Service.Server.Host,
+		port:   config.Service.Server.Port,
+		// done:   make(chan os.Signal, 1),
+	}
 }
