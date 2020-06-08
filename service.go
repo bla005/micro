@@ -12,7 +12,7 @@ import (
 // Service object
 type Service interface {
 	Init()
-	Start() error
+	Start()
 	Shutdown()
 	GetName() string
 	GetVersion() string
@@ -89,7 +89,10 @@ func (s *service) GetEndpoints() []string {
 
 // GetUptime returns service's uptime
 func (s *service) GetUptime() time.Duration {
-	return time.Now().Sub(startTime)
+	if startTime == nil {
+		return 0
+	}
+	return time.Now().Sub(*startTime)
 }
 
 // Init initializes the router and the server
@@ -113,14 +116,16 @@ func (s *service) GetTLSConfig() *tls.Config {
 }
 
 // Start starts the service
-func (s *service) Start() error {
-	startTime = time.Now()
+func (s *service) Start() {
+	*startTime = time.Now()
 	if s.config.Service.Server.Ssl {
-		if err := s.server.startWithTLS(); err != nil {
-			return err
-		}
+		/*
+			if err := s.server.startWithTLS(); err != nil {
+				return err
+			}
+		*/
 	} else {
-		s.server.start()
+		go s.server.start()
 		/*
 			if err := s.server.start(); err != nil {
 				return err
@@ -128,7 +133,7 @@ func (s *service) Start() error {
 		*/
 	}
 	fmt.Println("test")
-	return nil
+	// return nil
 }
 
 // Shudtown stops the service

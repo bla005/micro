@@ -30,7 +30,7 @@ type Config struct {
 
 // NewConfig returns an empty config
 func NewConfig() *Config {
-	return &Config{}
+	return defaultServiceConfig
 }
 
 // LoadConfig loads an existing config from the specified path
