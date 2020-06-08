@@ -2,6 +2,7 @@ package service
 
 import (
 	"crypto/tls"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -113,6 +114,7 @@ func (s *service) GetTLSConfig() *tls.Config {
 
 // Start starts the service
 func (s *service) Start() error {
+	startTime = time.Now()
 	if s.config.Service.Server.Ssl {
 		if err := s.server.startWithTLS(); err != nil {
 			return err
@@ -125,7 +127,7 @@ func (s *service) Start() error {
 			}
 		*/
 	}
-	startTime = time.Now()
+	fmt.Println("test")
 	return nil
 }
 
