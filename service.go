@@ -2,11 +2,11 @@ package service
 
 import (
 	"crypto/tls"
-	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/pkg/errors"
 )
 
 // Service object
@@ -22,7 +22,7 @@ type Service interface {
 	GetUptime() time.Duration
 	RegisterEndpoint(name string, handler http.HandlerFunc, method, path string)
 	RegisterEndpoints()
-	RegisterHealthEndpoint()
+	RegisterHealthEndpoint() error
 	SetTLSConfig(config *tls.Config)
 	GetTLSConfig() *tls.Config
 }
@@ -101,7 +101,10 @@ func (s *service) Init() {
 	s.server = newServer(s.router, s.config)
 }
 
-func (s *service) RegisterHealthEndpoint() {
+func (s *service) RegisterHealthEndpoint() error {
+	if s.router == nil {
+		return errors.WithMessage(ErrNilRouter, "service must be initialized")
+	}
 	s.router.HandlerFunc("GET", s.config.Service.Health.Path, s.healthHandler)
 }
 
@@ -132,7 +135,6 @@ func (s *service) Start() {
 			}
 		*/
 	}
-	fmt.Println("test")
 	// return nil
 }
 

@@ -35,7 +35,7 @@ func (s *server) getPort() int {
 }
 func (s *server) start() {
 	go func() {
-		if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := s.server.ListenAndServe(); err != nil {
 			log.Fatalf("listenAndServe: %v", err)
 		}
 	}()
@@ -47,9 +47,7 @@ func (s *server) start() {
 	<-done
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer func() {
-		cancel()
-	}()
+	defer cancel()
 
 	// s.server.SetKeepAlivesEnabled(false)
 	if err := s.server.Shutdown(ctx); err != nil {
