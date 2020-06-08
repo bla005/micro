@@ -106,6 +106,7 @@ func (s *service) RegisterHealthEndpoint() error {
 		return errors.WithMessage(ErrNilRouter, "service must be initialized")
 	}
 	s.router.HandlerFunc("GET", s.config.Service.Health.Path, s.healthHandler)
+	return nil
 }
 
 // SetTLSConfig makes the server use a specific TLS config
