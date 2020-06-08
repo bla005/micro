@@ -89,10 +89,10 @@ func (s *service) GetEndpoints() []string {
 
 // GetUptime returns service's uptime
 func (s *service) GetUptime() time.Duration {
-	if startTime == nil {
+	if startTime.IsZero() {
 		return 0
 	}
-	return time.Now().Sub(*startTime)
+	return time.Now().Sub(startTime)
 }
 
 // Init initializes the router and the server
@@ -117,7 +117,7 @@ func (s *service) GetTLSConfig() *tls.Config {
 
 // Start starts the service
 func (s *service) Start() {
-	*startTime = time.Now()
+	startTime = time.Now()
 	if s.config.Service.Server.Ssl {
 		/*
 			if err := s.server.startWithTLS(); err != nil {
@@ -125,7 +125,9 @@ func (s *service) Start() {
 			}
 		*/
 	} else {
-		go s.server.start()
+		go func() {
+			s.server.start()
+		}()
 		/*
 			if err := s.server.start(); err != nil {
 				return err

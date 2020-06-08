@@ -7,7 +7,7 @@ import (
 
 var (
 	// startTime is used to calculate the service uptime
-	startTime *time.Time
+	startTime time.Time
 
 	// defaultTLSConfig is the default TLS config used by the server
 	defaultTLSConfig = &tls.Config{
