@@ -35,6 +35,9 @@ func NewService(name string, version string, config *Config, server *Server, rou
 	if config == nil {
 		return nil, ErrNilConfig
 	}
+	if router == nil {
+		return nil, ErrNilRouter
+	}
 	if server == nil {
 		return nil, ErrNilServer
 	}
