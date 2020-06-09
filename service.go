@@ -122,7 +122,7 @@ func (s *service) Shutdown() error {
 // UseDependency
 func (s *service) UseDependency(d ...*Dependency) {
 	for i := 0; i < len(d); i++ {
-		s.dependencies = append(s.dependencies, d)
+		s.dependencies = append(s.dependencies, d[i])
 	}
 }
 
