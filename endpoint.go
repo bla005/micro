@@ -33,7 +33,7 @@ func (e *Endpoint) Path() string {
 }
 
 // MakeEndpoint
-func MakeEndpoint(name method, path string, handler http.HandlerFunc) *Endpoint {
+func MakeEndpoint(name, method, path string, handler http.HandlerFunc) *Endpoint {
 	return &Endpoint{
 		name:    name,
 		handler: handler,
