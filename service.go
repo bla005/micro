@@ -18,6 +18,7 @@ type Service interface {
 	Uptime() time.Duration
 	RegisterEndpoints()
 	RegisterHealthEndpoint()
+	RegisterDependency(d *Dependency)
 }
 
 type service struct {
@@ -98,7 +99,7 @@ func (s *service) Start() {
 
 // Shutdown stops the service
 func (s *service) Shutdown() error {
-	if s.Uptime() == 0 {
+	if s.Uptime() != 0 {
 		s.server.shutdown()
 	} else {
 		// return ErrServiceNotStarted

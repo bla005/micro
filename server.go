@@ -67,9 +67,9 @@ func (s *Server) Port() int {
 func (s *Server) start() {
 	// Server must run in a different goroutine so it doesn't block
 	go func() {
-		if err := s.srv.ListenAndServe(); err != nil {
+		if err := s.srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			// log.Fatalf("listenAndServe: %v", err)
-			panic("failed starting server")
+			panic("failed listenAndServe")
 		}
 	}()
 
