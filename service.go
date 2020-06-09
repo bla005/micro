@@ -18,7 +18,7 @@ type Service interface {
 	Uptime() time.Duration
 	UseEndpoints()
 	UseHealthEndpoint()
-	UseDependency(d *Dependency)
+	UseDependency(d ...*Dependency)
 }
 
 type service struct {
@@ -86,8 +86,8 @@ func (s *service) Uptime() time.Duration {
 	return time.Now().Sub(startTime)
 }
 
-// AddHealthEndpoint ...
-func (s *service) useHealthEndpoint() {
+// UseHealthEndpoint
+func (s *service) UseHealthEndpoint() {
 	s.router.HandlerFunc("GET", s.config.HealthPath(), s.healthHandler)
 }
 
@@ -119,9 +119,11 @@ func (s *service) Shutdown() error {
 	return nil
 }
 
-// AddAddDependency
-func (s *service) UseDependency(d *Dependency) {
-	s.dependencies = append(s.dependencies, d)
+// UseDependency
+func (s *service) UseDependency(d ...*Dependency) {
+	for i := 0; i < len(d); i++ {
+		s.dependencies = append(s.dependencies, d)
+	}
 }
 
 // Health
