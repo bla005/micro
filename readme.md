@@ -15,11 +15,11 @@ func main() {
 		service.MakeDependency("Store", "Redis", redispingme),
 	)
 	service1.UseEndpoint(
-	service.MakeEndpoint("info", "GET", "/info", Info),                                                                        
-	service.MakeEndpoint("stats", "GET", "/stats", Stats),                                                                         
-
+		service.MakeEndpoint("info", "GET", "/info", Info),                                                                        
+		service.MakeEndpoint("stats", "GET", "/stats", Stats),
+	}
 	service1.Start()
-)
+}
 
 func Info(w http.ResponseWriter, r *http.Request) {}
 func Stats(w http.ResponseWriter, r *http.Request) {}
