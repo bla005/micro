@@ -101,7 +101,8 @@ func (s *service) Shutdown() error {
 	if s.Uptime() == 0 {
 		s.server.shutdown()
 	} else {
-		return ErrServiceNotStarted
+		// return ErrServiceNotStarted
+		panic("service not started")
 	}
 	return nil
 }

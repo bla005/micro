@@ -7,9 +7,9 @@ import (
 
 func (s *service) Health() map[string]string {
 	e := make(map[string]string)
-	for i := 0; i < len(s.externals); i++ {
-		if err := s.externals[i].Ping(); err != nil {
-			e[s.externals[i].Name] = "critical"
+	for i := 0; i < len(s.dependencies); i++ {
+		if err := s.dependencies[i].Ping(); err != nil {
+			e[s.dependencies[i].Name] = "critical"
 		}
 	}
 	return e

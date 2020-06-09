@@ -10,9 +10,9 @@ type Dependency struct {
 	Ping func() error
 }
 
-func (e *Dependency) Ping() error {
-	return e.Ping()
-}
+// func (e *Dependency) ping() error {
+// 	return e.Ping()
+// }
 
 func (s *service) RegisterDependency(d *Dependency) {
 	s.dependencies = append(s.dependencies, d)
