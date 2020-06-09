@@ -4,6 +4,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func newRouter() *httprouter.Router {
+func NewRouter() *httprouter.Router {
 	return httprouter.New()
 }

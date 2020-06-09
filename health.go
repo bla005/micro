@@ -5,19 +5,24 @@ import (
 	"net/http"
 )
 
+func (s *service) Health() map[string]string {
+	e := make(map[string]string)
+	for i := 0; i < len(s.externals); i++ {
+		if err := s.externals[i].Ping(); err != nil {
+			e[s.externals[i].Name] = "critical"
+		}
+	}
+	return e
+}
+
 func (s *service) healthHandler(w http.ResponseWriter, r *http.Request) {
-	// check store
-	// check database
+	e := s.Health()
 	resp := struct {
-		Uptime        string `json:"uptime"`
-		Db            string `json:"database"`
-		Store         string `json:"store"`
-		GeneralHealth string `json:"general_health"`
+		Uptime    string            `json:"uptime"`
+		Externals map[string]string `json:"externals"`
 	}{
-		Uptime:        s.GetUptime().String(),
-		Db:            "ok",
-		Store:         "ok",
-		GeneralHealth: "ok",
+		Uptime:    s.Uptime().String(),
+		Externals: e,
 	}
 	if err := json.NewEncoder(w).Encode(&resp); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

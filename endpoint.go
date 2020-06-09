@@ -1,8 +1,10 @@
 package service
 
-import "net/http"
+import (
+	"net/http"
+)
 
-// Endpoint object
+// Endpoint structure
 type Endpoint struct {
 	Name    string
 	Handler http.HandlerFunc
@@ -20,12 +22,15 @@ func newEndpoint(name string, handler http.HandlerFunc, method, path string) *En
 }
 
 // Register an endpoint
-func (s *service) RegisterEndpoint(name string, handler http.HandlerFunc, method, path string) {
-	endpoint := newEndpoint(name, handler, method, path)
-	s.endpoints = append(s.endpoints, endpoint)
-}
+// func (s *service) RegisterEndpoint(name string, handler http.HandlerFunc, method, path string) {
+// 	if !s.isInitialized() {
+// 		log.Fatalf("%v cant register endpoint", ErrNotInitialized)
+// 	}
+// 	endpoint := newEndpoint(name, handler, method, path)
+// 	s.endpoints = append(s.endpoints, endpoint)
+// }
 
-// Register all endpoints
+// RegisterEndpoints registers services' endpoints
 func (s *service) RegisterEndpoints() {
 	for i := 0; i < len(s.endpoints); i++ {
 		s.router.HandlerFunc(s.endpoints[i].Method, s.endpoints[i].Path, s.endpoints[i].Handler)
