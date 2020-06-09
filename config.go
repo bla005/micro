@@ -7,30 +7,6 @@ import (
 	"github.com/goccy/go-yaml"
 )
 
-//
-// type Config interface {
-// 	LogDir() string
-// 	HealthPath() string
-// 	ServerHost() string
-// 	ServerPort() int
-// 	ServerSsl() bool
-// 	ServerReadTimeout() time.Duration
-// 	ServerWriteTimeout() time.Duration
-// 	ServerIdleTimeout() time.Duration
-// 	ServerReadHeaderTimeout() time.Duration
-// 	SetLogDir(dir string)
-// 	SetHealthPath(path string)
-// 	SetHost(host string)
-// 	SetPort(port int)
-// 	SetSsl(ssl bool)
-// 	SetReadTimeout(timeout time.Duration)
-// 	SetWriteTimeout(timeout time.Duration)
-// 	SetIdleTimeout(timeout time.Duration)
-// 	SetReadHeaderTimeout(timeout time.Duration)
-// }
-//
-
-// Config structure
 type Config struct {
 	Service struct {
 		LogDir string `yaml:"logdir"`
@@ -55,6 +31,7 @@ type Config struct {
 func NewConfig() *Config {
 	return defaultServiceConfig
 }
+
 func (c *Config) LogDir() string {
 	return c.Service.LogDir
 }
@@ -124,4 +101,18 @@ func LoadConfig(path string) (*Config, error) {
 		return nil, err
 	}
 	return c, nil
+}
+
+func (c *Config) Save(file string) error {
+	f, err := os.OpenFile(file, os.O_WRONLY|os.O_CREATE, 0777)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	if err := yaml.NewEncoder(f).Encode(c); err != nil {
+		return nil
+	}
+
+	return nil
 }

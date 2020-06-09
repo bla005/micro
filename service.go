@@ -6,7 +6,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// Service structure
 type Service interface {
 	Start()
 	Name() string
@@ -16,8 +15,8 @@ type Service interface {
 	Endpoints() []string
 	Dependencies() []string
 	Uptime() time.Duration
-	UseEndpoints()
 	UseHealthEndpoint()
+	UseEndpoint(e ...*Endpoint)
 	UseDependency(d ...*Dependency)
 }
 
@@ -92,10 +91,14 @@ func (s *service) UseHealthEndpoint() {
 }
 
 // AddEndpoints registers services' endpoints
-func (s *service) UseEndpoints() {
-	for i := 0; i < len(s.endpoints); i++ {
+func (s *service) UseEndpoint(e ...*Endpoint) {
+	for i := 0; i < len(e); i++ {
+		s.endpoints = append(s.endpoints, e[i])
 		s.router.HandlerFunc(s.endpoints[i].Method(), s.endpoints[i].Path(), s.endpoints[i].Handler())
 	}
+	// for i := 0; i < len(s.endpoints); i++ {
+	// 	s.router.HandlerFunc(s.endpoints[i].Method(), s.endpoints[i].Path(), s.endpoints[i].Handler())
+	// }
 }
 
 // Start starts the service
