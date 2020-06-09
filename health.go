@@ -5,16 +5,6 @@ import (
 	"net/http"
 )
 
-func (s *service) Health() map[string]string {
-	e := make(map[string]string)
-	for i := 0; i < len(s.dependencies); i++ {
-		if err := s.dependencies[i].Ping(); err != nil {
-			e[s.dependencies[i].Name] = "critical"
-		}
-	}
-	return e
-}
-
 func (s *service) healthHandler(w http.ResponseWriter, r *http.Request) {
 	e := s.Health()
 	resp := struct {

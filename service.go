@@ -8,17 +8,17 @@ import (
 
 // Service structure
 type Service interface {
+	Start()
 	Name() string
 	Version() string
-	Start()
 	Shutdown() error
 	Health() map[string]string
 	Endpoints() []string
 	Dependencies() []string
 	Uptime() time.Duration
-	RegisterEndpoints()
-	RegisterHealthEndpoint()
-	RegisterDependency(d *Dependency)
+	AddEndpoints()
+	AddHealthEndpoint()
+	AddDependency(d *Dependency)
 }
 
 type service struct {
@@ -27,8 +27,8 @@ type service struct {
 	config       *Config
 	server       *Server
 	router       *httprouter.Router
-	endpoints    []*Endpoint
-	dependencies []*Dependency
+	endpoints    Endpoints
+	dependencies Dependencies
 }
 
 // NewService creates a new service
@@ -36,46 +36,49 @@ func NewService(name string, version string, config *Config, server *Server, rou
 	if config == nil {
 		return nil, ErrNilConfig
 	}
+	if server == nil {
+		return nil, ErrNilServer
+	}
 	return &service{
 		name:         name,
 		version:      version,
 		config:       config,
 		server:       server,
 		router:       router,
-		endpoints:    make([]*Endpoint, 0),
-		dependencies: make([]*Dependency, 0),
+		endpoints:    make(Endpoints, 0),
+		dependencies: make(Dependencies, 0),
 	}, nil
 }
 
-// GetName returns service's name
+// Name returns service's name
 func (s *service) Name() string {
 	return s.name
 }
 
-// GetVersion returns service's version
+// Version returns service's version
 func (s *service) Version() string {
 	return s.version
 }
 
-// GetEndpoints returns service's endpoints
+// Endpoints returns service's endpoints
 func (s *service) Endpoints() []string {
 	var endpoints []string
 	for i := 0; i < len(s.endpoints); i++ {
-		endpoints = append(endpoints, s.endpoints[i].Name)
+		endpoints = append(endpoints, s.endpoints[i].Name())
 	}
 	return endpoints
 }
 
-// GetDependencies returns service's dependencies
+// Dependencies returns service's dependencies
 func (s *service) Dependencies() []string {
 	var dependencies []string
 	for i := 0; i < len(s.dependencies); i++ {
-		dependencies = append(dependencies, s.dependencies[i].Name)
+		dependencies = append(dependencies, s.dependencies[i].Name())
 	}
 	return dependencies
 }
 
-// GetUptime returns service's uptime
+// Uptime returns service's uptime
 func (s *service) Uptime() time.Duration {
 	if startTime.IsZero() {
 		return 0
@@ -83,8 +86,16 @@ func (s *service) Uptime() time.Duration {
 	return time.Now().Sub(startTime)
 }
 
-func (s *service) RegisterHealthEndpoint() {
+// AddHealthEndpoint ...
+func (s *service) AddHealthEndpoint() {
 	s.router.HandlerFunc("GET", s.config.HealthPath(), s.healthHandler)
+}
+
+// AddEndpoints registers services' endpoints
+func (s *service) AddEndpoints() {
+	for i := 0; i < len(s.endpoints); i++ {
+		s.router.HandlerFunc(s.endpoints[i].Method(), s.endpoints[i].Path(), s.endpoints[i].Handler())
+	}
 }
 
 // Start starts the service
@@ -106,4 +117,20 @@ func (s *service) Shutdown() error {
 		panic("service not started")
 	}
 	return nil
+}
+
+// AddAddDependency
+func (s *service) AddDependency(d *Dependency) {
+	s.dependencies = append(s.dependencies, d)
+}
+
+// Health
+func (s *service) Health() map[string]string {
+	e := make(map[string]string)
+	for i := 0; i < len(s.dependencies); i++ {
+		if err := s.dependencies[i].Ping(); err != nil {
+			e[s.dependencies[i].Name] = "critical"
+		}
+	}
+	return e
 }

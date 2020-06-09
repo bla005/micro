@@ -3,9 +3,9 @@ package service
 // Dependency structure
 type Dependency struct {
 	// Type of the depedency (Database, Store, Message Queue etc.)
-	Type string
+	_type string
 	// Name of the dependency (Postgres, MySQL, Cassandra, Redis)
-	Name string
+	name string
 	// Ping is used for health checks
 	Ping func() error
 }
@@ -14,6 +14,13 @@ type Dependency struct {
 // 	return e.Ping()
 // }
 
-func (s *service) RegisterDependency(d *Dependency) {
-	s.dependencies = append(s.dependencies, d)
+func (d *Dependency) Type() string {
+	return d._type
+}
+func (d *Dependency) Name() string {
+	return d.name
+}
+
+func MakeDependency(_type, name string, ping func() error) *Dependency {
+	return &Dependency{_type: _type, name: name, Ping: ping}
 }

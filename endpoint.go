@@ -6,33 +6,30 @@ import (
 
 // Endpoint structure
 type Endpoint struct {
-	Name    string
-	Handler http.HandlerFunc
-	Method  string
-	Path    string
+	name    string
+	handler http.HandlerFunc
+	method  string
+	path    string
 }
 
-func newEndpoint(name string, handler http.HandlerFunc, method, path string) *Endpoint {
+func (e *Endpoint) Name() string {
+	return e.name
+}
+func (e *Endpoint) Handler() http.HandlerFunc {
+	return e.handler
+}
+func (e *Endpoint) Method() string {
+	return e.method
+}
+func (e *Endpoint) Path() string {
+	return e.path
+}
+
+func MakeEndpoint(name method, path string, handler http.HandlerFunc) *Endpoint {
 	return &Endpoint{
-		Name:    name,
-		Handler: handler,
-		Method:  method,
-		Path:    path,
-	}
-}
-
-// Register an endpoint
-// func (s *service) RegisterEndpoint(name string, handler http.HandlerFunc, method, path string) {
-// 	if !s.isInitialized() {
-// 		log.Fatalf("%v cant register endpoint", ErrNotInitialized)
-// 	}
-// 	endpoint := newEndpoint(name, handler, method, path)
-// 	s.endpoints = append(s.endpoints, endpoint)
-// }
-
-// RegisterEndpoints registers services' endpoints
-func (s *service) RegisterEndpoints() {
-	for i := 0; i < len(s.endpoints); i++ {
-		s.router.HandlerFunc(s.endpoints[i].Method, s.endpoints[i].Path, s.endpoints[i].Handler)
+		name:    name,
+		handler: handler,
+		method:  method,
+		path:    path,
 	}
 }
