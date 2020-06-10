@@ -5,17 +5,20 @@ import (
 	"net/http"
 )
 
-func (s *service) healthHandler(w http.ResponseWriter, r *http.Request) {
-	e := s.Health()
-	resp := struct {
-		Uptime    string            `json:"uptime"`
-		Externals map[string]string `json:"externals"`
-	}{
-		Uptime:    s.Uptime().String(),
-		Externals: e,
-	}
-	if err := json.NewEncoder(w).Encode(&resp); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+type healthResponse struct {
+	uptime       string            `json:"uptime"`
+	dependencies map[string]string `json:"dependencies"`
+}
+
+func newHealthResponse(uptime string, dependencies map[string]string) *healthResponse {
+	return &healthResponse{uptime: uptime, dependencies: dependencies}
+}
+
+func (s *Service) healthHandler(w http.ResponseWriter, r *http.Request) {
+	health := s.Health()
+	resp := newHealthResponse(s.Uptime().String(), health)
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		http.Error(w, "internal", http.StatusInternalServerError)
 		return
 	}
 }

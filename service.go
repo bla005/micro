@@ -1,143 +1,107 @@
 package service
 
 import (
+	"crypto/tls"
+	"net/http"
 	"time"
 
 	"github.com/julienschmidt/httprouter"
 )
 
-type Service interface {
-	Start()
-	Name() string
-	Version() string
-	Shutdown() error
-	Health() map[string]string
-	Endpoints() []string
-	Dependencies() []string
-	Uptime() time.Duration
-	UseHealthEndpoint()
-	UseEndpoint(e ...*Endpoint)
-	UseDependency(d ...*Dependency)
-}
+var startTime time.Time
 
-type service struct {
-	name         string
-	version      string
+type Service struct {
+	Name         string
+	Version      string
 	config       *Config
-	server       *Server
+	server       *http.Server
 	router       *httprouter.Router
 	endpoints    Endpoints
 	dependencies Dependencies
 }
 
-// NewService creates a new service
-func NewService(name string, version string, config *Config, server *Server, router *httprouter.Router) (Service, error) {
+func NewService(name string, version string, config *Config, server *http.Server, router *httprouter.Router) *Service {
 	if config == nil {
-		return nil, ErrNilConfig
+		panic("nil config")
 	}
 	if router == nil {
-		return nil, ErrNilRouter
+		panic("nil router")
 	}
 	if server == nil {
-		return nil, ErrNilServer
+		panic("nil server")
 	}
-	return &service{
-		name:         name,
-		version:      version,
+	return &Service{
+		Name:         name,
+		Version:      version,
 		config:       config,
 		server:       server,
 		router:       router,
 		endpoints:    make(Endpoints, 0),
 		dependencies: make(Dependencies, 0),
-	}, nil
+	}
 }
 
-// Name returns service's name
-func (s *service) Name() string {
-	return s.name
-}
-
-// Version returns service's version
-func (s *service) Version() string {
-	return s.version
-}
-
-// Endpoints returns service's endpoints
-func (s *service) Endpoints() []string {
-	var endpoints []string
-	for i := 0; i < len(s.endpoints); i++ {
-		endpoints = append(endpoints, s.endpoints[i].Name())
+func (s *Service) Endpoints() []string {
+	endpoints := make([]string, len(s.endpoints))
+	for _, endpoint := range s.endpoints {
+		endpoints = append(endpoints, endpoint.name)
 	}
 	return endpoints
 }
 
-// Dependencies returns service's dependencies
-func (s *service) Dependencies() []string {
-	var dependencies []string
-	for i := 0; i < len(s.dependencies); i++ {
-		dependencies = append(dependencies, s.dependencies[i].Name())
+func (s *Service) Dependencies() []string {
+	dependencies := make([]string, len(s.dependencies))
+	for _, dependency := range s.dependencies {
+		dependencies = append(dependencies, dependency.name)
 	}
 	return dependencies
 }
 
-// Uptime returns service's uptime
-func (s *service) Uptime() time.Duration {
-	if startTime.IsZero() {
-		return 0
+func (s *Service) Uptime() time.Duration {
+	return time.Since(startTime)
+}
+
+func (s *Service) UseHealthEndpoint() {
+	s.router.HandlerFunc("GET", s.config.Service.Health.Path, s.healthHandler)
+}
+
+func (s *Service) UseEndpoint(e ...*Endpoint) {
+	for _, endpoint := range e {
+		s.endpoints = append(s.endpoints, endpoint)
+		s.router.HandlerFunc(endpoint.method, endpoint.path, endpoint.handler)
 	}
-	return time.Now().Sub(startTime)
 }
 
-// UseHealthEndpoint
-func (s *service) UseHealthEndpoint() {
-	s.router.HandlerFunc("GET", s.config.HealthPath(), s.healthHandler)
-}
-
-// AddEndpoints registers services' endpoints
-func (s *service) UseEndpoint(e ...*Endpoint) {
-	for i := 0; i < len(e); i++ {
-		s.endpoints = append(s.endpoints, e[i])
-		s.router.HandlerFunc(s.endpoints[i].Method(), s.endpoints[i].Path(), s.endpoints[i].Handler())
-	}
-	// for i := 0; i < len(s.endpoints); i++ {
-	// 	s.router.HandlerFunc(s.endpoints[i].Method(), s.endpoints[i].Path(), s.endpoints[i].Handler())
-	// }
-}
-
-// Start starts the service
-func (s *service) Start() {
+func (s *Service) Start() {
 	startTime = time.Now()
-	if s.config.ServerSsl() {
+	if s.config.Service.Server.Ssl {
 		// s.server.startWithTls()
 	} else {
-		s.server.start()
+		start(s.server)
 	}
 }
 
-// Shutdown stops the service
-func (s *service) Shutdown() error {
-	if s.Uptime() != 0 {
-		s.server.shutdown()
-	} else {
-		// return ErrServiceNotStarted
-		panic("service not started")
+func (s *Service) Shutdown() {
+	// Is server running?
+	if s.Uptime() > 0 {
+		shutdown(s.server)
 	}
-	return nil
+}
+func (s *Service) SetTLSConfig(config *tls.Config) {
+	s.server.TLSConfig = config
 }
 
-// UseDependency
-func (s *service) UseDependency(d ...*Dependency) {
-	for i := 0; i < len(d); i++ {
-		s.dependencies = append(s.dependencies, d[i])
+func (s *Service) UseDependency(d ...*Dependency) {
+	for _, dependency := range d {
+		s.dependencies = append(s.dependencies, dependency)
 	}
 }
 
-// Health
-func (s *service) Health() map[string]string {
+func (s *Service) Health() map[string]string {
 	e := make(map[string]string)
-	for i := 0; i < len(s.dependencies); i++ {
-		if err := s.dependencies[i].Ping(); err != nil {
-			e[s.dependencies[i].Name()] = "critical"
+	for _, dependency := range s.dependencies {
+		if err := dependency.ping(); err != nil {
+			e[dependency.name] = "critical"
 		}
 	}
 	return e

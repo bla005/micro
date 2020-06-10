@@ -7,100 +7,71 @@ import (
 	"github.com/goccy/go-yaml"
 )
 
+// DefaultConfig is the default service config
+var DefaultConfig = &Config{
+	Service: &serviceConfig{
+		LogDir: "logs",
+		Health: &healthConfig{
+			Path: "/health",
+		},
+		Server: &serverConfig{
+			Host: "",
+			Port: 8088,
+			Timeout: &timeoutConfig{
+				Read:       time.Second * 5,
+				Write:      time.Second * 5,
+				Idle:       time.Second * 5,
+				ReadHeader: time.Second * 5,
+			},
+		},
+	},
+}
+
 type Config struct {
-	Service struct {
-		LogDir string `yaml:"logdir"`
-		Health struct {
-			Path string `yaml:"path"`
-		} `yaml:"health"`
-		Server struct {
-			Host    string `yaml:"host"`
-			Port    int    `yaml:"port"`
-			Ssl     bool   `yaml:"ssl"`
-			Timeout struct {
-				Read       time.Duration `yaml:"read"`
-				Write      time.Duration `yaml:"write"`
-				Idle       time.Duration `yaml:"idle"`
-				ReadHeader time.Duration `yaml:"read_header"`
-			} `yaml:"timeout"`
-		} `yaml:"server"`
-	} `yaml:"service"`
+	Service *serviceConfig `yaml:"service"`
 }
 
-// NewConfig creates a Config with default settings
+type serviceConfig struct {
+	LogDir string        `yaml:"logdir"`
+	Health *healthConfig `yaml:"health"`
+	Server *serverConfig `yaml:"server"`
+}
+
+type healthConfig struct {
+	Path string `yaml:"path"`
+}
+
+type serverConfig struct {
+	Host    string         `yaml:"host"`
+	Port    int            `yaml:"port"`
+	Ssl     bool           `yaml:"ssl"`
+	Timeout *timeoutConfig `yaml:"timeout"`
+}
+
+type timeoutConfig struct {
+	Read       time.Duration `yaml:"read"`
+	Write      time.Duration `yaml:"write"`
+	Idle       time.Duration `yaml:"idle"`
+	ReadHeader time.Duration `yaml:"read_header"`
+}
+
+// NewConfig returns an empty config
 func NewConfig() *Config {
-	return defaultServiceConfig
+	return &Config{}
 }
 
-func (c *Config) LogDir() string {
-	return c.Service.LogDir
-}
-func (c *Config) HealthPath() string {
-	return c.Service.Health.Path
-}
-func (c *Config) ServerHost() string {
-	return c.Service.Server.Host
-}
-func (c *Config) ServerPort() int {
-	return c.Service.Server.Port
-}
-func (c *Config) ServerSsl() bool {
-	return c.Service.Server.Ssl
-}
-func (c *Config) ServerReadTimeout() time.Duration {
-	return c.Service.Server.Timeout.Read
-}
-func (c *Config) ServerWriteTimeout() time.Duration {
-	return c.Service.Server.Timeout.Write
-}
-func (c *Config) ServerIdleTimeout() time.Duration {
-	return c.Service.Server.Timeout.Idle
-}
-func (c *Config) ServerReadHeaderTimeout() time.Duration {
-	return c.Service.Server.Timeout.ReadHeader
-}
-
-func (c *Config) SetLogDir(dir string) {
-	c.Service.LogDir = dir
-}
-
-func (c *Config) SetHealthPath(path string) {
-	c.Service.Health.Path = path
-}
-func (c *Config) SetHost(host string) {
-	c.Service.Server.Host = host
-}
-func (c *Config) SetPort(port int) {
-	c.Service.Server.Port = port
-}
-func (c *Config) SetSsl(ssl bool) {
-	c.Service.Server.Ssl = ssl
-}
-func (c *Config) SetReadTimeout(timeout time.Duration) {
-	c.Service.Server.Timeout.Read = timeout
-}
-func (c *Config) SetWriteTimeout(timeout time.Duration) {
-	c.Service.Server.Timeout.Write = timeout
-}
-func (c *Config) SetIdleTimeout(timeout time.Duration) {
-	c.Service.Server.Timeout.Idle = timeout
-}
-func (c *Config) SetReadHeaderTimeout(timeout time.Duration) {
-	c.Service.Server.Timeout.ReadHeader = timeout
-}
-
-// LoadConfig loads an existing Config from the specified path
+// LoadConfig loads a config from a path
 func LoadConfig(path string) (*Config, error) {
-	c := NewConfig()
+	cfg := NewConfig()
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
-	if err := yaml.NewDecoder(file).Decode(c); err != nil {
+	if err := yaml.NewDecoder(file).Decode(cfg); err != nil {
 		return nil, err
 	}
-	return c, nil
+	return cfg, nil
 }
 
 func (c *Config) Save(file string) error {
@@ -109,10 +80,8 @@ func (c *Config) Save(file string) error {
 		return err
 	}
 	defer f.Close()
-
 	if err := yaml.NewEncoder(f).Encode(c); err != nil {
-		return nil
+		return err
 	}
-
 	return nil
 }
