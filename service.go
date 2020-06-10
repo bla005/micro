@@ -68,7 +68,7 @@ func (s *Service) Endpoints() []string {
 	endpoints := make([]string, len(s.endpoints))
 	for i, endpoint := range s.endpoints {
 		// endpoints = append(endpoints, endpoint.name)
-		endpoints[i] = endpoint.name
+		endpoints[i] = endpoint.Name
 	}
 
 	return endpoints
@@ -81,7 +81,7 @@ func (s *Service) Dependencies() []string {
 	dependencies := make([]string, len(s.dependencies))
 	for i, dependency := range s.dependencies {
 		// dependencies = append(dependencies, dependency.name)
-		dependencies[i] = dependency.name
+		dependencies[i] = dependency.Name
 	}
 	return dependencies
 }
@@ -100,7 +100,7 @@ func (s *Service) UseHealthEndpoint() {
 func (s *Service) UseEndpoint(e ...*Endpoint) {
 	for _, endpoint := range e {
 		s.endpoints = append(s.endpoints, endpoint)
-		s.router.HandlerFunc(endpoint.method, endpoint.path, endpoint.handler)
+		s.router.HandlerFunc(endpoint.Method, endpoint.Path, endpoint.handler)
 	}
 }
 

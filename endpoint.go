@@ -5,17 +5,17 @@ import (
 )
 
 type Endpoint struct {
-	name    string
+	Name    string `json:"name"`
 	handler http.HandlerFunc
-	method  string
-	path    string
+	Method  string `json:"method"`
+	Path    string `json:"path"`
 }
 
 func MakeEndpoint(name, method, path string, handler http.HandlerFunc) *Endpoint {
 	return &Endpoint{
-		name:    name,
+		Name:    name,
 		handler: handler,
-		method:  method,
-		path:    path,
+		Method:  method,
+		Path:    path,
 	}
 }
