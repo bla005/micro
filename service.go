@@ -2,13 +2,50 @@ package service
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/julienschmidt/httprouter"
 )
 
 var startTime time.Time
+
+const (
+	dependenciesFile = "dependencies.json"
+	endpointsFile    = "endpoints.json"
+)
+
+type Dependencies []*Dependency
+
+func (d *Dependencies) ExportJSON() error {
+	f, err := os.Create(dependenciesFile)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	if err := json.NewEncoder(f).Encode(d); err != nil {
+		return err
+	}
+	return nil
+}
+
+type Endpoints []*Endpoint
+
+func (e *Endpoints) ExportJSON() error {
+	f, err := os.Create(endpointsFile)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	if err := json.NewEncoder(f).Encode(e); err != nil {
+		return err
+	}
+	return nil
+}
 
 type Service struct {
 	Name         string
@@ -46,6 +83,7 @@ func (s *Service) Endpoints() []string {
 	for _, endpoint := range s.endpoints {
 		endpoints = append(endpoints, endpoint.name)
 	}
+
 	return endpoints
 }
 
@@ -86,6 +124,7 @@ func (s *Service) Shutdown() {
 	if s.Uptime() > 0 {
 		shutdown(s.server)
 	}
+	// Else noop
 }
 func (s *Service) SetTLSConfig(config *tls.Config) {
 	s.server.TLSConfig = config

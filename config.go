@@ -18,9 +18,9 @@ var DefaultConfig = &Config{
 			Host: "",
 			Port: 8088,
 			Timeout: &timeoutConfig{
-				Read:       time.Second * 5,
-				Write:      time.Second * 5,
-				Idle:       time.Second * 5,
+				Read:       time.Second * 2,
+				Write:      time.Second * 2,
+				Idle:       time.Second * 20,
 				ReadHeader: time.Second * 5,
 			},
 		},
@@ -61,14 +61,14 @@ func NewConfig() *Config {
 }
 
 // LoadConfig loads a config from a path
-func LoadConfig(path string) (*Config, error) {
+func OpenConfig(file string) (*Config, error) {
 	cfg := NewConfig()
-	file, err := os.Open(path)
+	f, err := os.Open(file)
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
-	if err := yaml.NewDecoder(file).Decode(cfg); err != nil {
+	defer f.Close()
+	if err := yaml.NewDecoder(f).Decode(cfg); err != nil {
 		return nil, err
 	}
 	return cfg, nil
