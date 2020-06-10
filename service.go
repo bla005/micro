@@ -18,30 +18,16 @@ const (
 )
 
 type Dependencies []*Dependency
-
-func (d *Dependencies) ExportJSON() error {
-	f, err := os.Create(dependenciesFile)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	if err := json.NewEncoder(f).Encode(d); err != nil {
-		return err
-	}
-	return nil
-}
-
 type Endpoints []*Endpoint
 
-func (e *Endpoints) ExportJSON() error {
-	f, err := os.Create(endpointsFile)
+func exportToJSON(file string, data interface{}) error {
+	f, err := os.Create(file)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
-	if err := json.NewEncoder(f).Encode(e); err != nil {
+	if err := json.NewEncoder(f).Encode(data); err != nil {
 		return err
 	}
 	return nil
@@ -80,19 +66,27 @@ func NewService(name string, version string, config *Config, server *http.Server
 
 func (s *Service) Endpoints() []string {
 	endpoints := make([]string, len(s.endpoints))
-	for _, endpoint := range s.endpoints {
-		endpoints = append(endpoints, endpoint.name)
+	for i, endpoint := range s.endpoints {
+		// endpoints = append(endpoints, endpoint.name)
+		endpoints[i] = endpoint.name
 	}
 
 	return endpoints
 }
+func (s *Service) ExportEndpoints() error {
+	return exportToJSON(endpointsFile, s.endpoints)
+}
 
 func (s *Service) Dependencies() []string {
 	dependencies := make([]string, len(s.dependencies))
-	for _, dependency := range s.dependencies {
-		dependencies = append(dependencies, dependency.name)
+	for i, dependency := range s.dependencies {
+		// dependencies = append(dependencies, dependency.name)
+		dependencies[i] = dependency.name
 	}
 	return dependencies
+}
+func (s *Service) ExportDependencies() error {
+	return exportToJSON(dependenciesFile, s.dependencies)
 }
 
 func (s *Service) Uptime() time.Duration {
