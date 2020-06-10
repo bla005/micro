@@ -134,7 +134,7 @@ func (s *Service) Health() map[string]string {
 	e := make(map[string]string)
 	for _, dependency := range s.dependencies {
 		if err := dependency.ping(); err != nil {
-			e[dependency.name] = "critical"
+			e[dependency.Name] = "critical"
 		}
 	}
 	return e
