@@ -100,7 +100,7 @@ func (s *Service) UseHealthEndpoint() {
 func (s *Service) UseEndpoint(e ...*Endpoint) {
 	for _, endpoint := range e {
 		s.endpoints = append(s.endpoints, endpoint)
-		s.router.HandlerFunc(endpoint.Method, endpoint.Path, endpoint.handler)
+		s.router.HandlerFunc(endpoint.Method, endpoint.Path, endpoint.Handler)
 	}
 }
 
@@ -133,7 +133,7 @@ func (s *Service) UseDependency(d ...*Dependency) {
 func (s *Service) Health() map[string]string {
 	e := make(map[string]string)
 	for _, dependency := range s.dependencies {
-		if err := dependency.ping(); err != nil {
+		if err := dependency.Ping(); err != nil {
 			e[dependency.Name] = "critical"
 		}
 	}
